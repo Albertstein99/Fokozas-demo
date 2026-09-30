@@ -7,10 +7,10 @@
 1. Create the public repository `Albertstein99/Fokozas-demo`.
 2. Push the prepared demo snapshot to its `main` branch.
 3. Open the repository's **Settings > Pages**.
-4. Select **Deploy from a branch**, **main**, and **/ (root)**, then save.
+4. Select **Deploy from a branch**, **gh-pages**, and **/ (root)**, then save.
 5. Wait for GitHub's Pages deployment to succeed before sharing its website URL.
 
-The intended URL is `https://albertstein99.github.io/Fokozas-demo/`.
+The demo URL is `https://albertstein99.github.io/Fokozas-demo/`.
 The site uses relative asset paths and includes `.nojekyll`.
 
 ## Manual releases
@@ -20,8 +20,17 @@ development repository does not update this demo.
 
 For a new public release, the maintainer builds and tests the desired version,
 reviews the generated web files and public documentation, and explicitly
-commits and pushes that snapshot here. GitHub Pages then deploys the public
-branch. No private-source synchronization or scheduled publishing is configured.
+commits and pushes that snapshot here. The `main` branch holds the public
+snapshot and documentation; the `gh-pages` branch is the published version.
+To publish a reviewed commit from the public checkout, push it to both:
+
+```sh
+git push origin main
+git push origin main:gh-pages
+```
+
+GitHub Pages deploys `gh-pages`. No private-source synchronization or scheduled
+publishing is configured.
 
 ## Files to keep together
 

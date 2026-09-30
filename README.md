@@ -4,7 +4,7 @@ Explore a moving point on a circle and the line joining it to a freely moving
 point. This repository contains a tested web demo and public documentation.
 It is an independent release snapshot, updated manually.
 
-**Demo address after Pages activation:**
+**Live demo:**
 [albertstein99.github.io/Fokozas-demo](https://albertstein99.github.io/Fokozas-demo/)
 
 ## Try it
