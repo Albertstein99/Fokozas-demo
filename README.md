@@ -1,28 +1,31 @@
-# Fokozas interactive demo
+# Fokozas interactive geometry demo
 
-This repository contains a manually published web demo, with no private
-development source or development history. It does not automatically sync
-with the development repository.
+Explore a moving point on a circle and the line joining it to a freely moving
+point. This repository contains a tested web demo and public documentation.
+It is an independent release snapshot, updated manually.
+
+**Demo address after Pages activation:**
+[albertstein99.github.io/Fokozas-demo](https://albertstein99.github.io/Fokozas-demo/)
 
 ## Try it
 
-After GitHub Pages is enabled, open
-[the interactive demo](https://albertstein99.github.io/Fokozas-demo/).
-
-- Drag the gray point freely.
-- Drag the orange point around the circle.
-- The joining line follows both points in real time.
-- Press Escape to cancel a drag.
+- Drag the **gray point** freely.
+- Drag the **orange point** around the circle.
+- Watch the joining line follow both points in real time.
+- Press **Escape** to cancel a drag.
 - Drag empty space to pan; scroll or pinch to zoom.
 
-Download `Fokozas.html` to run the demo offline in a modern WebGL 2 browser.
+You can also download [Fokozas.html](Fokozas.html) and open it locally in a
+modern browser with WebGL 2 enabled. Download the file itself rather than
+saving GitHub's file-preview page.
 
-## Hosting
+## Documentation
 
-In Settings > Pages, choose **Deploy from a branch**, **main**, **/ (root)**.
-All paths are relative, so the site works under the repository's Pages URL.
+- [Using the demo](docs/user-guide.md): controls, examples, and troubleshooting.
+- [How the geometry works](docs/geometry.md): constraints, projective time,
+  and the joining line.
+- [Hosting and publishing](docs/publishing.md): GitHub Pages setup and manual updates.
 
-## Updates
-
-Updates are intentional snapshots of tested web build output. There are no
-scheduled jobs or workflows that pull changes from the private repository.
+The private development source and its history are not included. The browser
+assets, including JavaScript and WebAssembly, are public. No workflow or
+scheduled job automatically copies private changes into this repository.
