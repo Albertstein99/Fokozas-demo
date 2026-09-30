@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fokozás · Geometry figure</title>
+  <script src="fokozas-widget.js" defer></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f6f8; color: #283a4e; font-family: system-ui, sans-serif; }
+    main { max-width: 820px; margin: 0 auto; padding: 64px 24px 48px; }
+    .eyebrow { margin: 0 0 14px; color: #53718f; font-size: 12px; font-weight: 650; letter-spacing: .1em; }
+    h1 { margin: 0 0 16px; font-size: clamp(26px, 4vw, 36px); font-weight: 600; letter-spacing: -.035em; }
+    .intro { max-width: 600px; margin: 0 0 28px; color: #627184; font-size: 16px; line-height: 1.75; }
+    figure { margin: 0; }
+    fokozas-viewport { --fokozas-height: clamp(320px, 56vw, 470px); }
+    figcaption { padding: 16px 4px 0; font-size: 13px; line-height: 1.8; color: #65768a; }
+    .equation { white-space: nowrap; }
+    @media (max-width: 500px) { main { padding: 32px 16px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">FOKOZÁS · FIGURE 01</p>
+    <h1>A circle and its joining line</h1>
+    <p class="intro">Move the gray point freely and slide the orange point around the circle. The line through them follows both points in real time.</p>
+    <figure>
+      <fokozas-viewport label="Circle and joining line"></fokozas-viewport>
+      <figcaption>
+        <span class="equation">x² + y² = 25</span> &nbsp;·&nbsp;
+        <span class="equation">A = (−6; −2)</span> &nbsp;·&nbsp;
+        <span class="equation">P = (3; 4)</span>
+        <br>Coordinates above are starting positions. Drag either point to move it; press Escape to cancel.
+        <br>Drag empty space to pan, scroll or pinch to zoom. Use the fit button to see the whole scene.
+      </figcaption>
+    </figure>
+  </main>
+</body>
+</html>
