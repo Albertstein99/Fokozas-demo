@@ -1,31 +1,23 @@
-# Fokozas interactive geometry demo
+# Fokozás website
 
-Explore a moving point on a circle and the line joining it to a freely moving
-point. This repository contains a tested web demo and public documentation.
-It is an independent release snapshot, updated manually.
+[Open the website](https://albertstein99.github.io/Fokozas-demo/) ·
+[Open the editor](https://albertstein99.github.io/Fokozas-demo/editor/) ·
+[Explore constructions](https://albertstein99.github.io/Fokozas-demo/gallery.html)
 
-**Live demo:**
-[albertstein99.github.io/Fokozas-demo](https://albertstein99.github.io/Fokozas-demo/)
+The homepage, geometry editor, interactive gallery, and example lessons work in
+a modern phone or desktop browser. No installation is needed. The hosted site
+stays available while the development computer is off. Bookmark it or use your
+browser's Add to Home Screen option for quick access.
 
-## Try it
+Drag purple points to move them and pinch with two fingers to zoom. The editor
+starts empty; use its construction tools to add geometry. The Downloads section
+also offers the available Android development APK and the offline viewer HTML.
 
-- Drag the **gray point** freely.
-- Drag the **orange point** around the circle.
-- Watch the joining line follow both points in real time.
-- Press **Escape** to cancel a drag.
-- Drag empty space to pan; scroll or pinch to zoom.
+This repository contains a manually published distribution snapshot. The private
+development source, credentials, and development history are not included.
+Publishing development-source changes does not automatically update this site.
 
-You can also download [Fokozas.html](Fokozas.html) and open it locally in a
-modern browser with WebGL 2 enabled. Download the file itself rather than
-saving GitHub's file-preview page.
-
-## Documentation
-
-- [Using the demo](docs/user-guide.md): controls, examples, and troubleshooting.
-- [How the geometry works](docs/geometry.md): constraints, projective time,
-  and the joining line.
-- [Hosting and publishing](docs/publishing.md): GitHub Pages setup and manual updates.
-
-The private development source and its history are not included. The browser
-assets, including JavaScript and WebAssembly, are public. No workflow or
-scheduled job automatically copies private changes into this repository.
+GitHub Pages serves the `gh-pages` branch. Publish a reviewed distribution commit
+to both `main` and `gh-pages` to update it. Keep each page's matching JavaScript,
+WebAssembly, icons, and font license together. The original offline viewer link,
+`Fokozas.html`, remains available for existing bookmarks.

@@ -10,8 +10,8 @@ that line. A point constrained to a circle follows the radial direction from
 the circle center to the requested position.
 
 The shared interaction implementation supports all three rules. This demo
-shows a free gray point and a circle-constrained orange point; the joining
-line is a dependent construction, not a movement constraint for the orange point.
+shows a free purple point and a circle-constrained purple point; the joining
+line is a dependent construction, not a movement constraint for the purple point.
 
 ## Projective parameters
 

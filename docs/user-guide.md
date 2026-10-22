@@ -5,7 +5,7 @@
 ## What you see
 
 The blue circle has equation `x² + y² = 25`, centered at the origin with
-radius 5. The gray point A starts at `(-6, -2)` and moves freely. The orange
+radius 5. The purple point A starts at `(-6, -2)` and moves freely. The purple
 point P starts at `(3, 4)` and stays on the circle. The infinite line through
 A and P updates while either point moves.
 
@@ -16,8 +16,8 @@ coordinate readouts.
 
 | Action | Control |
 | --- | --- |
-| Move A freely | Drag the gray point with the primary mouse button or one finger |
-| Move P around the circle | Drag the orange point with the primary mouse button or one finger |
+| Move A freely | Drag the purple point with the primary mouse button or one finger |
+| Move P around the circle | Drag the purple point with the primary mouse button or one finger |
 | Finish a move | Release the pointer |
 | Cancel a move | Press Escape; the point and joining line return to their starting state |
 | Pan | Drag empty space, or drag with the middle mouse button |
@@ -52,9 +52,11 @@ It includes the runtime and needs no server connection after downloading.
 The separate `index.html`, JavaScript, and WebAssembly files are the hosted
 version; serve them together, for example through GitHub Pages.
 
-The demo requires JavaScript, WebAssembly, and WebGL 2. If a graphics error
-appears, check that your browser supports WebGL 2 and permits hardware
-acceleration. A browser or device that disables WebGL cannot display the figure.
+The demo requires JavaScript, WebAssembly, and either WebGL 2 or Canvas 2D.
+When WebGL 2 is unavailable, it automatically uses software rendering through
+Canvas 2D. A small “Compatibility rendering” tag appears; hover or focus it
+for an explanation. Navigation and point dragging still work, though rendering
+may be slower on large scenes.
 
 This is a small demonstration, not a full geometry editor. It does not yet
 provide construction tools, a constraint selector, undo history, or saved documents.

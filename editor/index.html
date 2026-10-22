@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fokozás App</title>
+  <style>
+    :root {color-scheme:light;--bg:#f9fafc;--panel:#ffffffed;--ink:#26486c;--edge:#d4dee8;--hover:#f0eafa;--active:#e5d7fa;--accent:#7950b8;--shadow:#14283c18;}
+    :root[data-theme=dark] {color-scheme:dark;--bg:#0e1218;--panel:#202832ed;--ink:#cdddf1;--edge:#394554;--hover:#352b46;--active:#50336f;--accent:#bc96ef;--shadow:#0006;}
+    * {box-sizing:border-box;}
+    html,body {margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:14px system-ui;}
+    canvas {display:block;width:100%;height:100%;touch-action:none;cursor:grab;}
+    canvas.dragging {cursor:grabbing;}
+    canvas:focus {outline:none;}
+    button,select {font:inherit;color:inherit;}
+    #tools {position:absolute;z-index:2;top:12px;left:12px;display:flex;flex-direction:column;gap:4px;padding:6px;
+      background:var(--panel);border:1px solid var(--edge);border-radius:14px;box-shadow:0 5px 20px var(--shadow);}
+    .tool {position:relative;display:grid;place-items:center;width:44px;height:44px;padding:6px;background:transparent;border:1px solid transparent;border-radius:8px;cursor:pointer;}
+    .tool:hover,.tool:focus-visible {background:var(--hover);}
+    .tool[aria-pressed=true] {background:var(--active);border-color:var(--accent);}
+    .tool svg {width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.6;}
+    button:focus-visible,summary:focus-visible,select:focus-visible {outline:2px solid var(--accent);outline-offset:2px;}
+    .tip {display:none;position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);white-space:nowrap;
+      padding:6px 10px;background:var(--panel);border:1px solid var(--edge);border-radius:7px;box-shadow:0 3px 12px var(--shadow);pointer-events:none;}
+    .tool:hover .tip,.tool:focus-visible .tip {display:block;}
+    #point-arrow {position:absolute;right:8px;top:84px;width:15px;height:15px;padding:0;border:0;border-radius:3px;background:transparent;cursor:pointer;font-size:11px;}
+    #point-menu {position:absolute;left:76px;top:60px;z-index:4;background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:6px;box-shadow:0 5px 20px var(--shadow);}
+    #point-menu[hidden] {display:none;}
+    #point-menu button {display:block;text-align:left;width:100%;white-space:nowrap;border:0;border-radius:5px;padding:9px 14px;background:transparent;cursor:pointer;}
+    #point-menu button[aria-checked=true] {background:var(--active);}
+    #point-menu button:hover {background:var(--hover);}
+    #app-actions {position:absolute;z-index:3;top:12px;right:12px;display:flex;gap:8px;}
+    #app-actions button {cursor:pointer;width:42px;height:42px;font-size:22px;background:var(--panel);border:1px solid var(--edge);border-radius:12px;box-shadow:0 5px 20px var(--shadow);}
+    #settings-dialog {width:min(820px,calc(100% - 24px));height:min(640px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:20px;overflow:hidden;background:var(--bg);color:var(--ink);border:1px solid var(--edge);border-radius:14px;}
+    #settings-dialog[open] {display:grid;grid-template-rows:auto minmax(0,1fr) 3em auto;}
+    #settings-body {display:grid;grid-template-columns:160px minmax(0,1fr);gap:20px;min-height:0;}
+    #settings-dialog::backdrop {background:#0007;}
+    #settings-dialog h2 {margin:0 0 16px;font-size:20px;}
+    #settings-dialog button,#settings-dialog select {padding:7px 10px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);cursor:pointer;}
+    #settings-dialog button:disabled {opacity:.5;cursor:default;}
+    #settings-dialog [role=tablist] {display:flex;flex-direction:column;gap:4px;overflow:auto;border-right:1px solid var(--edge);padding-right:12px;}
+    #settings-dialog [role=tab] {text-align:left;border-color:transparent;background:transparent;min-height:42px;flex-shrink:0;}
+    #settings-dialog [role=tab]:hover {background:var(--hover);}
+    #settings-dialog [role=tab][aria-selected=true] {color:var(--accent);font-weight:600;background:var(--active);border-color:transparent;box-shadow:inset 3px 0 var(--accent);}
+    #settings-dialog input {accent-color:var(--accent);max-width:100%;min-width:0;}
+    #settings-dialog #settings-close {background:var(--accent);color:var(--bg);border-color:var(--accent);}
+
+    #settings-dialog [aria-selected=true],#quick-tools [aria-pressed=true] {background:var(--active);border-color:var(--accent);}
+    #settings-content {min-height:0;min-width:0;overflow:auto;scrollbar-gutter:stable;padding-right:8px;}
+    #settings-content label {display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:18px 0;}
+    .theme-previews {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 28px;}
+    #settings-dialog .theme-preview {padding:0;border:0;background:transparent;text-align:left;}
+    .theme-miniature {display:block;position:relative;aspect-ratio:1.5;border:2px solid var(--edge);border-radius:9px;background:#f9fafc;color:#9160d1;overflow:hidden;margin-bottom:8px;}
+    [data-theme-choice=dark] .theme-miniature {background:#12161e;}
+    [data-theme-choice=system] .theme-miniature {background:linear-gradient(90deg,#f9fafc 50%,#12161e 50%);}
+    .theme-miniature svg {width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.5;}
+    .mini-bar {position:absolute;top:0;left:0;right:0;height:12%;background:#8993a330;}
+    .mini-tools {position:absolute;left:7%;top:24%;width:12%;height:64%;border-radius:4px;background:#8993a330;text-align:center;font-size:12px;line-height:1.2;}
+    .theme-check {display:none;position:absolute;right:3px;top:3px;border-radius:50%;background:var(--accent);color:var(--bg);width:19px;height:19px;text-align:center;}
+    .theme-preview[aria-pressed=true] .theme-miniature {border-color:var(--accent);}
+    .theme-preview[aria-pressed=true] .theme-check {display:block;}
+    @media(max-width:520px) {.theme-previews{grid-template-columns:1fr;}.theme-miniature{max-width:200px;}}
+    #settings-content p {line-height:1.5;}
+    .setting-row {display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--edge);padding:8px 0;}
+    .setting-row>span {flex:1;min-width:140px;}
+    #settings-message {margin:6px 0;overflow:auto;}
+    #settings-dialog footer {display:flex;justify-content:space-between;gap:12px;margin-top:14px;}
+    @media(max-width:520px) {#settings-dialog{padding:12px;}#settings-body{grid-template-columns:104px minmax(0,1fr);gap:10px;}#settings-dialog [role=tablist]{padding-right:6px;}#settings-dialog [role=tab]{padding:8px 6px;}.setting-row>span{flex-basis:100%;min-width:0;}}
+    #quick-tools {position:absolute;z-index:4;left:50%;bottom:64px;transform:translateX(-50%);display:flex;gap:5px;padding:7px;max-width:calc(100% - 24px);overflow:auto;background:var(--panel);border:1px solid var(--edge);border-radius:12px;box-shadow:0 5px 20px var(--shadow);}
+    #quick-tools[hidden] {display:none;}
+    #quick-tools svg {width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.6;}
+    #quick-tools button {display:grid;place-items:center;min-width:44px;height:44px;padding:6px;border:1px solid var(--edge);border-radius:6px;white-space:nowrap;background:transparent;cursor:pointer;}
+    #tool-status,#error {position:absolute;z-index:1;bottom:16px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);
+      margin:0;padding:8px 12px;background:var(--panel);border:1px solid var(--edge);border-radius:8px;box-shadow:0 3px 12px var(--shadow);}
+    #tool-status:empty {display:none;}
+    #error {color:#d46c58;}
+    #loading {position:absolute;top:50%;width:100%;text-align:center;pointer-events:none;}
+    @media(max-height:300px) {#tools{flex-direction:row;}#point-arrow{left:84px;right:auto;top:38px;}#point-menu{top:76px;}}
+    #render-warning {position:absolute;right:12px;bottom:12px;max-width:calc(100% - 24px);padding:5px 9px;border:1px solid #b48c32;border-radius:7px;background:#fff2ce;color:#624600;font:12px system-ui;z-index:3;}
+  </style>
+<!-- FOKOZAS ICON BEGIN -->
+<link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAICAAAAAAIADaBAAAFgAAAIlQTkcNChoKAAAADUlIRFIAAAAgAAAAIAgGAAAAc3p69AAABKFJREFUeJzVll1QVGUYx//P2SWIhGgTwjGRRU1CiV1IgWao3dXJqUYmm6GkD7C6cBLI+NTyIuqKYBWigUEvVIRmmllqyJyJQYMdmbIhWBaCYFKUFBHBZlxc2GVZztPFugyB+4U4Tc/Ve57n//6f3znv+555gf9zMPNDzOx/Px601Il9vQMtTT+cUwPAK6/u6NwYvT6FiCz3A+NVlGzvePRKh6ki8/UsmyYplTVJqbznjSz7lQ5TRWXixWBf/QRvhVWqvhVl6q4qiSi5PT5o3X/t6jU/Z210ZEwy9qd1//QjZlOp2lBZpepbsawApRpD+qRguwTCPgAw/z0zpUxQsLMeG7eJzbdsFgAgopxJwXapVGNI98bb4x4oVRsyiKjW+cwisgtbFbUWi7X5Qlt7MgmEqLURt9ZuWBuh3WbcC6B8TsucWdQaf2rJAEc0xtV25n4iBDFwUWTadbBV0TdfU5CWcxkg+RTsQdW6anOZqnsz02wjEa0DeEI6ExCd2xZzw1UPt0swy1xPhCAAEERJ6sLmAMDgYwDwMEt3A0ChPq6XZ3nn3fcLtkut9e56uAQoeb4nFgSVowkKC/TPDNxLJ8KvDgAInOHMHTif0A+RDjoYSKPdZojxGUCQiFuc46IWpdaVrlxXfp0ZP4EoJTctd7UzL5l+vHIOUsSzPgOAHAAMNrjUOINRBwAC2991pvIurLEA3AMARNjiaqprAHZQE+M3T/0tgv1bgK1EeG+Bh2Mu0xIACGEOD+GmJ4BqXbUZTA0AyXPTcrbOK404vDjcZwBi+t3BIW72BAAATHQKAASmjHm5WABgOLx8AgDBeNdE4Q3AYd2XZwEeB/DWPKx4ACDmLp8BSGSjgwNRWo3hJW8gmOkEEULy0rJTtWrjDgJFAIDI5HIjuwQw47EzzDwIAAw6eSS5T+YJICExofGFnRpkf5ZXk7J31XeyNf5g5kELQpp8BijWy60SmlvPMHuAra44oSPQHUB6QYZqcGRk9sN9h1bp9DWBWzNDwCS8WayXW30GAID8FuUvYJQBABFeDgwWeg6rDXGu9F2/9r5zurFJMmWdhMHYif7RdhxoUbS76yF1VwSAwlZlUZnaIAPR+0S0TgSMpWrDaQK6CYJRZPiBEAOIionBgKelUj/Y7TMAAJksZNiTv9dXsjKVYTsLVE/AE640KyMDsHG3bfbMj99TYnK8oFRs+iDiKXmNO1+vb0SF+vhzRS3KcBGUCOZ8AA1gvsGMYQANLOKjsaHpxOdejJPGRkUWtOmaUflJeagn3yVfSt1FsWpPwJ3QoHECxrW6r6Lcab3+Aj4B6E9awfQNQPK813KSHkQPj9H9c+chfdN51n3dOHP1r+GzzBx9L92/ToEmKbV4uQBumkw5JZ9XAID0+LF6dd7H2cc1SanNAFgcnfhCP6S3LgIA8OlyAYxcH50bT0/bJCbTRDKAZABAeEgthjC0CECEqF4ugOiYDUelUul6u90urAyViZGRT9aLEE8AwPgd/xGn7oGcAgBg5pi+nv6sywODb1tum4PDwsLl6l3qoYU6j3/CpQYR/QEgKz8tp5VAOnEWcgCLAP7z+AeBEMgohK1W3QAAAABJRU5ErkJggg==">
+<link rel="icon" type="image/svg+xml" sizes="any" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cstyle%3E.dark%7Bdisplay%3Anone%7D%40media%28prefers-color-scheme%3Adark%29%7B.light%7Bdisplay%3Anone%7D.dark%7Bdisplay%3Ainline%7D%7D%3C%2Fstyle%3E%3Cg%20class%3D%22light%22%3E%3Cdefs%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3CclipPath%20id%3D%22clip-simple-light-32%22%3E%3Cpath%20d%3D%22M20%2010H236V256H20Z%22%20%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20clip-path%3D%22url%28%23clip-simple-light-32%29%22%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M120.474134793%2035%20L135.525865207%2035%20L210.609248176%20241.289899283%20A5%205%200%200%201%20205.910785072%20248%20L201.500832383%20248%20A5%205%200%200%201%20196.802369279%20244.710100717%20Z%22%20stroke%3D%22none%22%20stroke-width%3D%2214.144000000000002%22%20opacity%3D%221%22%20fill%3D%22%2374556e%22%20data-end-shape%3D%22horizontal-rounded-corners%22%20data-corner-radius%3D%225%22%20%2F%3E%3Cpath%20d%3D%22M25%20211.096%20H231%20A5%205%200%200%201%20236%20216.096%20V221.904%20A5%205%200%200%201%20231%20226.904%20H25%20A5%205%200%200%201%2020%20221.904%20V216.096%20A5%205%200%200%201%2025%20211.096%20Z%22%20stroke%3D%22none%22%20stroke-width%3D%2215.808000000000002%22%20fill%3D%22%2342384e%22%20data-corner-radius%3D%225%22%20%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%22105%22%20r%3D%2270%22%20stroke%3D%22%238b42cf%22%20stroke-width%3D%2219.136%22%20%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%22172.99513267805776%22%20cy%3D%22158.62311101832844%22%20r%3D%2215.36%22%20fill%3D%22%2342384e%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%228.959999999999999%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3Ccircle%20cx%3D%22194.97052310498123%22%20cy%3D%22219%22%20r%3D%2215.36%22%20fill%3D%22%2342384e%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%228.959999999999999%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2235%22%20r%3D%2216.128%22%20fill%3D%22%2342384e%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%228.959999999999999%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3Cg%20class%3D%22dark%22%3E%3Cdefs%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3CclipPath%20id%3D%22clip-simple-dark-32%22%3E%3Cpath%20d%3D%22M20%2010H236V256H20Z%22%20%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20clip-path%3D%22url%28%23clip-simple-dark-32%29%22%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M120.474134793%2035%20L135.525865207%2035%20L210.609248176%20241.289899283%20A5%205%200%200%201%20205.910785072%20248%20L201.500832383%20248%20A5%205%200%200%201%20196.802369279%20244.710100717%20Z%22%20stroke%3D%22none%22%20stroke-width%3D%2214.144000000000002%22%20opacity%3D%221%22%20fill%3D%22%23a3a5b0%22%20data-end-shape%3D%22horizontal-rounded-corners%22%20data-corner-radius%3D%225%22%20%2F%3E%3Cpath%20d%3D%22M25%20211.096%20H231%20A5%205%200%200%201%20236%20216.096%20V221.904%20A5%205%200%200%201%20231%20226.904%20H25%20A5%205%200%200%201%2020%20221.904%20V216.096%20A5%205%200%200%201%2025%20211.096%20Z%22%20stroke%3D%22none%22%20stroke-width%3D%2215.808000000000002%22%20fill%3D%22%23d3d5dc%22%20data-corner-radius%3D%225%22%20%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%22105%22%20r%3D%2270%22%20stroke%3D%22%239959e4%22%20stroke-width%3D%2219.136%22%20%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%22172.99513267805776%22%20cy%3D%22158.62311101832844%22%20r%3D%2212.8%22%20fill%3D%22%23d3d5dc%22%20stroke%3D%22%23191a1e%22%20stroke-width%3D%228.959999999999999%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3Ccircle%20cx%3D%22194.97052310498123%22%20cy%3D%22219%22%20r%3D%2212.8%22%20fill%3D%22%23d3d5dc%22%20stroke%3D%22%23191a1e%22%20stroke-width%3D%228.959999999999999%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2235%22%20r%3D%2213.440000000000001%22%20fill%3D%22%23d3d5dc%22%20stroke%3D%22%23191a1e%22%20stroke-width%3D%228.959999999999999%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+<!-- FOKOZAS ICON END -->
+</head>
+<body>
+  <canvas id="canvas" tabindex="0" aria-label="Geometry canvas"></canvas>
+  <nav id="tools" aria-label="Construction tools"></nav>
+  <div id="point-menu" role="menu" aria-label="Point creation mode" hidden></div>
+  <div id="app-actions"><button id="theme-cycle" type="button" title="Theme: System" aria-label="Theme: System">◐</button><button id="settings-open" type="button" title="Settings" aria-label="Settings" disabled>⚙</button></div>
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <h2 id="settings-title">Settings</h2>
+    <div id="settings-body">
+      <div role="tablist" aria-label="Settings categories" aria-orientation="vertical"></div>
+      <div id="settings-content" role="tabpanel" tabindex="0"></div>
+    </div>
+    <p id="settings-message" role="status"></p>
+    <footer><button id="settings-reset" type="button">Restore defaults</button><button id="settings-close" type="button">Done</button></footer>
+  </dialog>
+  <nav id="quick-tools" aria-label="Quick tools" hidden></nav>
+  <p id="tool-status" role="status"></p>
+  <p id="error" role="alert" hidden></p>
+  <span id="render-warning" role="status" tabindex="0" title="Compatibility rendering — WebGL2 is unavailable; rendering may be slower." aria-label="Compatibility rendering — WebGL2 is unavailable; rendering may be slower." hidden>⚠ Compatibility rendering</span>
+  <p id="loading" role="status"><img alt="" width="64" height="64" style="display:block;margin:0 auto 12px" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cstyle%3E.dark%7Bdisplay%3Anone%7D%40media%28prefers-color-scheme%3Adark%29%7B.light%7Bdisplay%3Anone%7D.dark%7Bdisplay%3Ainline%7D%7D%3C%2Fstyle%3E%3Cg%20class%3D%22light%22%3E%3Cdefs%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3CclipPath%20id%3D%22clip-full-light-96%22%3E%3Cpath%20d%3D%22M0%200H256V256H0Z%22%20%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20clip-path%3D%22url%28%23clip-full-light-96%29%22%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L586.993464006%20300%22%20stroke%3D%22%2374556e%22%20stroke-width%3D%228.5%22%20opacity%3D%220.5569230769230769%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L350.361402262%20300%22%20stroke%3D%22%2374556e%22%20stroke-width%3D%228.5%22%20opacity%3D%220.7784615384615384%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L224.452112081%20300%22%20stroke%3D%22%2374556e%22%20stroke-width%3D%228.5%22%20opacity%3D%221.0%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L128.000000000%20300%22%20stroke%3D%22%2374556e%22%20stroke-width%3D%228.5%22%20opacity%3D%220.7784615384615384%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L31.547887919%20300%22%20stroke%3D%22%2374556e%22%20stroke-width%3D%228.5%22%20opacity%3D%220.5569230769230769%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L-94.361402262%20300%22%20stroke%3D%22%2374556e%22%20stroke-width%3D%228.5%22%20opacity%3D%220.37360000000000004%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L-330.993464006%20300%22%20stroke%3D%22%2374556e%22%20stroke-width%3D%228.5%22%20opacity%3D%220.37360000000000004%22%20%2F%3E%3Cpath%20d%3D%22M0%20219H256%22%20stroke%3D%22%2342384e%22%20stroke-width%3D%2211%22%20%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%22105%22%20r%3D%2270%22%20stroke%3D%22%238b42cf%22%20stroke-width%3D%2213.5%22%20%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%22172.99513267805776%22%20cy%3D%22158.62311101832844%22%20r%3D%2211.9808%22%20fill%3D%22%2342384e%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%227.91325773622975%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3Ccircle%20cx%3D%22194.97052310498123%22%20cy%3D%22219%22%20r%3D%2211.9808%22%20fill%3D%22%2342384e%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%227.91325773622975%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2235%22%20r%3D%2212.57984%22%20fill%3D%22%2342384e%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%227.91325773622975%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3Cg%20class%3D%22dark%22%3E%3Cdefs%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3CclipPath%20id%3D%22clip-full-dark-96%22%3E%3Cpath%20d%3D%22M0%200H256V256H0Z%22%20%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20clip-path%3D%22url%28%23clip-full-dark-96%29%22%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L586.993464006%20300%22%20stroke%3D%22%23a3a5b0%22%20stroke-width%3D%228.5%22%20opacity%3D%220.5569230769230769%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L350.361402262%20300%22%20stroke%3D%22%23a3a5b0%22%20stroke-width%3D%228.5%22%20opacity%3D%220.7784615384615384%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L224.452112081%20300%22%20stroke%3D%22%23a3a5b0%22%20stroke-width%3D%228.5%22%20opacity%3D%221.0%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L128.000000000%20300%22%20stroke%3D%22%23a3a5b0%22%20stroke-width%3D%228.5%22%20opacity%3D%220.7784615384615384%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L31.547887919%20300%22%20stroke%3D%22%23a3a5b0%22%20stroke-width%3D%228.5%22%20opacity%3D%220.5569230769230769%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L-94.361402262%20300%22%20stroke%3D%22%23a3a5b0%22%20stroke-width%3D%228.5%22%20opacity%3D%220.37360000000000004%22%20%2F%3E%3Cpath%20class%3D%22ray%22%20d%3D%22M128%2035%20L-330.993464006%20300%22%20stroke%3D%22%23a3a5b0%22%20stroke-width%3D%228.5%22%20opacity%3D%220.37360000000000004%22%20%2F%3E%3Cpath%20d%3D%22M0%20219H256%22%20stroke%3D%22%23d3d5dc%22%20stroke-width%3D%2211%22%20%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%22105%22%20r%3D%2270%22%20stroke%3D%22%239959e4%22%20stroke-width%3D%2213.5%22%20%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%22172.99513267805776%22%20cy%3D%22158.62311101832844%22%20r%3D%229.984000000000002%22%20fill%3D%22%23d3d5dc%22%20stroke%3D%22%23191a1e%22%20stroke-width%3D%227.91325773622975%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3Ccircle%20cx%3D%22194.97052310498123%22%20cy%3D%22219%22%20r%3D%229.984000000000002%22%20fill%3D%22%23d3d5dc%22%20stroke%3D%22%23191a1e%22%20stroke-width%3D%227.91325773622975%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2235%22%20r%3D%2210.483200000000002%22%20fill%3D%22%23d3d5dc%22%20stroke%3D%22%23191a1e%22%20stroke-width%3D%227.91325773622975%22%20paint-order%3D%22stroke%20fill%22%20%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E">Loading…</p>
+  <script src="viewport-navigation.js"></script>
+  <script src="app-settings.js"></script>
+  <script>
+    const icons=[
+      '<path d="M16 3v26M3 16h26M12 7l4-4 4 4M12 25l4 4 4-4M7 12l-4 4 4 4M25 12l4 4-4 4"/>',
+      '<circle cx="16" cy="16" r="3" fill="currentColor"/>',
+      '<path d="m3 27 26-22"/><circle cx="9" cy="22" r="2.5" fill="currentColor"/><circle cx="23" cy="10" r="2.5" fill="currentColor"/>',
+      '<circle cx="16" cy="16" r="11"/><g fill="currentColor"><circle cx="27" cy="16" r="2.5"/><circle cx="10.5" cy="25.5" r="2.5"/><circle cx="10.5" cy="6.5" r="2.5"/></g>',
+      '<g transform="rotate(-32 16 16)"><ellipse cx="16" cy="16" rx="14" ry="8"/><g fill="currentColor"><circle cx="30.000" cy="16.000" r="2.2"/><circle cx="20.326" cy="23.608" r="2.2"/><circle cx="4.674" cy="20.702" r="2.2"/><circle cx="4.674" cy="11.298" r="2.2"/><circle cx="20.326" cy="8.392" r="2.2"/></g></g>'
+    ];
+    ['Move','Point','Line','Circle','Conic'].forEach((name,i)=>{
+      const button=document.createElement('button');button.type='button';button.className='tool';button.disabled=true;
+      button.setAttribute('aria-label',name);button.setAttribute('aria-pressed',String(i===0));
+      button.innerHTML=`<svg viewBox="0 0 32 32" aria-hidden="true">${icons[i]}</svg><span class="tip">${name}</span>`;
+      document.querySelector('#tools').append(button);
+    });
+    const arrow=document.createElement('button');arrow.id='point-arrow';arrow.type='button';arrow.textContent='▾';arrow.disabled=true;
+    arrow.setAttribute('aria-label','Point creation mode');arrow.setAttribute('aria-haspopup','menu');arrow.setAttribute('aria-expanded','false');
+    document.querySelector('#tools').append(arrow);
+    const modes=document.querySelector('#point-menu');
+    function closeModes(){modes.hidden=true;arrow.setAttribute('aria-expanded','false');}
+    function openModes(){modes.hidden=false;arrow.setAttribute('aria-expanded','true');modes.querySelector('button').focus();}
+    arrow.onclick=()=>{if(modes.hidden)openModes();else closeModes();};
+    function selectMode(i){
+      Module.cancelNavigation();Module._point_mode_set(i);Module.onPointToolChanged(1);
+      Module.activeAction=['tool.point','point.free','point.constrained','point.incidence'][i];
+      for(const [j,b] of [...modes.children].entries())b.setAttribute('aria-checked',String(i===j));
+      closeModes();Module.canvas.focus();
+    }
+    ['Automatic','Free','Constrained','Incidence (two lines)'].forEach((name,i)=>{
+      const button=document.createElement('button');button.type='button';button.textContent=name;button.setAttribute('role','menuitemradio');button.setAttribute('aria-checked',String(i===0));
+      button.onclick=()=>selectMode(i);
+      modes.append(button);
+    });
+    document.addEventListener('pointerdown',e=>{if(!modes.contains(e.target) && e.target!==arrow)closeModes();});
+    modes.addEventListener('keydown',e=>{
+      const buttons=[...modes.children],index=buttons.indexOf(document.activeElement);
+      if(e.key==='Escape'){closeModes();arrow.focus();e.preventDefault();}
+      if(e.key==='ArrowDown'||e.key==='ArrowUp'){buttons[(index+(e.key==='ArrowDown'?1:3))%4].focus();e.preventDefault();}
+    });
+    const appearance=appearanceSettings();
+    appearance.subscribe(state=>{
+      document.documentElement.dataset.theme=state.dark?'dark':'light';
+      const button=document.querySelector('#theme-cycle');button.textContent={system:'◐',light:'☀',dark:'☾'}[state.preference];
+      button.title='Theme: '+state.preference+' (click to cycle)';button.setAttribute('aria-label',button.title);
+      Module?._theme_set?.(state.dark?1:0);
+    });
+    document.querySelector('#theme-cycle').onclick=()=>appearance.cycle();
+    var Module={
+      canvas:document.querySelector('#canvas'),
+      onRuntimeInitialized(){
+        document.querySelector('#loading').hidden=true;initializeViewportNavigation(Module);
+        Module._theme_set(appearance.dark?1:0);arrow.disabled=false;
+        const buttons=document.querySelectorAll('#tools .tool');
+        Module.activeAction='tool.move';
+        Module.onPointToolChanged=value=>{if(value===1)for(const [i,b] of [...modes.children].entries())b.setAttribute('aria-checked',String(i===0));Module.activeAction=['tool.move','tool.point','tool.line','tool.circle','tool.conic'][value];closeModes();buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===value)));};
+        buttons.forEach((button,i)=>{button.disabled=false;button.onclick=()=>{Module.selectPointTool(i);Module.canvas.focus({preventScroll:true});};});
+        buttons[1].ondblclick=openModes;
+        initializeAppSettings(Module,openModes,selectMode);document.querySelector('#settings-open').disabled=false;
+      },
+      onAbort(){document.querySelector('#loading').hidden=true;const error=document.querySelector('#error');error.textContent='The app could not be loaded. Please reload.';error.hidden=false;}
+    };
+  </script>
+  <script async type="text/javascript" src="editor.js"></script>
+</body>
+</html>

@@ -37,7 +37,7 @@ publishing is configured.
 - `index.html`: hosted demo page.
 - `fokozas-widget.js`: figure frame and toolbar.
 - `viewport-navigation.js`: pointer, touch, and keyboard input.
-- `viewport.html`, `viewport.js`, `viewport.wasm`: compiled rendering runtime.
+- `viewer-runtime.js`, `viewer-runtime.wasm`: shared rendering runtime.
 - `Fokozas.html`: downloadable self-contained offline version.
 - `.nojekyll`: static-site marker.
 - `README.md` and `docs/`: public documentation.
